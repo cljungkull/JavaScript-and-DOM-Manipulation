@@ -1,66 +1,56 @@
 // from data.js
 var tableData = data;
 
-// YOUR CODE HERE!
-// Get references to the tbody element, input field and button
-var $tbody = document.querySelector("tbody");
-var $dateInput = document.querySelector("datetime");
-var $stateInput = document.querySelector("#state");
-var $searchBtn = document.querySelector("#search");
+// function to display UFO sightings
+function tableDisplay(ufoSightings) {
+  var tbody = d3.select("tbody");
+  ufoSightings.forEach((ufoRecord) => {
+    var row = tbody.append("tr");
+    Object.entries(ufoRecord).forEach(([key, value]) => {
+      var cell = row.append("td");
+      cell.html(value);
+    });
+  });
+};
 
-// Add an event listener to the searchButton, call handleSearchButtonClick when clicked
-$searchBtn.addEventListener("click", handleSearchButtonClick);
+// clear the table for new data
+function deleteTbody() {
+  d3.select("tbody")
+    .selectAll("tr").remove()
+    .selectAll("td").remove();
+};
 
+// initial display of all UFO sightings
+console.log(tableData);
+tableDisplay(tableData);
 
-// Set filteredUFO to addressData initially
-var filteredUFO = dataSet;
+// 'Filter Table' button
+var button = d3.select("#filter-btn");
 
-// renderTable renders the filteredUFO to the tbody
-function renderTable() {
-  $tbody.innerHTML = "";
-  console.log("render is happening")
+// filter the database and display
+button.on("click", function(event) {
+  d3.event.preventDefault();
+  deleteTbody();
+  var dateInput = d3.select("#datetime").property("value");
+  
+  if (dateInput.trim() === "" ) {
+    // display the whole database if the date field has no date
+    var filteredData = tableData;
+  } else {
+    // otherwise, display the filtered dataset  
+    var filteredData = tableData.filter(ufoSighting => 
+      ufoSighting.datetime === dateInput.trim());
+  };
 
-  for (var i = 0; i < filteredUFO.length; i++) {
-    
-    // Get get the current sighting object and its fields
-    var sighting = filteredUFO[i];
-    var fields = Object.keys(sighting);
-    // Create a new row in the tbody, set the index to be i + startingIndex
-    var $row = $tbody.insertRow(i);
-    for (var j = 0; j < fields.length; j++) {
-      // For every field in the address object, create a new cell at set its inner text to be the current value at the current address's field
-      var field = fields[j];
-      var $cell = $row.insertCell(j);
-      $cell.innerText = sighting[field];
-    }
-  }
-}
+  // display message if no records found
+  if (filteredData.length == 0) {
+    d3.select("tbody")
+      .append("tr")
+      .append("td")
+        .attr("colspan", 7)
+        .html("<h4>No Records Found</h4>");
+  };
 
-function handleSearchButtonClick() {
-  // Format the user's search by removing leading and trailing whitespace, lowercase the string
-  var filterDate = $dateInput.value.trim();
-  var filterState = $stateInput.value.trim().toLowerCase();
-
-  if (filterDate.length != 0){
-    filteredUFO = dataSet.filter(function(sighting) {
-      var sightingDate = sighting.datetime;
-       return sightingDate === filterDate;
-         });
-  }
-  else {
-    filteredUFO = dataSet
-  }
-  if (filterState.length != 0){
-    filteredUFO = filteredUFO.filter(function(sighting) {
-      var sightingState = sighting.state;
-       return sightingState === filterState;
-         });
-  }
-  else {
-    filteredUFO = filteredUFO
-  }
-  renderTable();
-}
-
-// Render the table for the first time on page load
-renderTable();
+  console.log(filteredData);
+  tableDisplay(filteredData);
+});
